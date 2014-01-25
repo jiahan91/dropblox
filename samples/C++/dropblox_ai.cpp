@@ -277,6 +277,30 @@ void Board::remove_rows(Bitmap* new_bitmap) {
   }
 }
 
+enum MoveType {left, right, up, down, rotate};
+typedef struct
+{
+  int x;
+  int y;
+  int rotation;
+} position;
+
+
+vector<string>* flood_fill(Board* board, int array[33][12], const vector<string>* moves, const position* find)
+{
+
+}
+
+void flood_fill(Board* board, int array[33][12])
+{
+  flood_fill(board, array, NULL, NULL);
+}
+
+vector<string>* find_path_to(Board* board, int array[33][12], const position* find)
+{
+
+}
+
 int main(int argc, char** argv) {
   // Construct a JSON Object with the given game state.
   istringstream raw_state(argv[1]);
