@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+#
+# Sample dropblox_ai exectuable.
+#
+
+import json
+import time
+import sys
+import os
+
+if __name__ == '__main__':
+    state = sys.argv[1].replace("{", "\{").replace("}","\}").replace(" ","\ ").replace("\"","\\\"")
+    time = sys.argv[2]
+
+    os.system('java -cp ./:./json_simple-1.1.jar AIClient ' + state + ' ' + time)

@@ -1,0 +1,8 @@
+To compile this library on a computer with g++, use
+
+  g++ ./dropblox_ai dropblox.cpp
+
+or invoke the included Makefile. Compilation with other tools should be similar.
+
+This ./dropblox_ai binary satisfies the competition spec - simply copy it the
+directory with your client to use it!

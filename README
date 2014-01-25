@@ -1,0 +1,5 @@
+Please visit http://playdropblox.com/dropblox_intro.html for the latest documentation
+
+Windows users: 
+dropblox_ai.bat is a batch file that will execute python dropblox_ai
+If dropblox_ai is not a python script, delete this file.
