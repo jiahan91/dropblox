@@ -100,6 +100,63 @@ bool Block::checked_rotate(const Board& board) {
   return false;
 }
 
+bool Block::check_left(const Board& board) {
+  left();
+  if (board.check(*this)) {
+    right();
+    return true;
+  }
+  right();
+  return false;
+}
+
+bool Block::check_right(const Board& board) {
+  right();
+  if (board.check(*this)) {
+    left();
+    return true;
+  }
+  left();
+  return false;
+}
+
+bool Block::check_up(const Board& board) {
+  up();
+  if (board.check(*this)) {
+    down();
+    return true;
+  }
+  down();
+  return false;
+}
+
+bool Block::check_down(const Board& board) {
+  down();
+  if (board.check(*this)) {
+    up();
+    return true;
+  }
+  up();
+  return false;
+}
+
+bool Block::check_rotate(const Board& board) {
+  rotate();
+  if (board.check(*this)) {
+    unrotate();
+    return true;
+  }
+  unrotate();
+  return false;
+}
+
+void Block::set_position(const position& pos)
+{
+  translation.i = pos.i-I_START;
+  translation.j = pos.j-J_START;
+  rotation = pos.rotation;
+}
+
 void Block::do_command(const string& command) {
   if (command == "left") {
     left();
@@ -277,28 +334,161 @@ void Board::remove_rows(Bitmap* new_bitmap) {
   }
 }
 
-enum MoveType {left, right, up, down, rotate};
-typedef struct
+bool equals_start(const position& pos)
 {
-  int x;
-  int y;
-  int rotation;
-} position;
-
-
-vector<string>* flood_fill(Board* board, int array[33][12], const vector<string>* moves, const position* find)
-{
-
+  return (pos.i == I_START && pos.j == J_START && pos.rotation == 0);
 }
 
-void flood_fill(Board* board, int array[33][12])
+bool is_reachable(const int array[33][23], const position& pos)
 {
-  flood_fill(board, array, NULL, NULL);
+  return (array[pos.i][pos.j] & (1<<pos.rotation)) != 0;
 }
 
-vector<string>* find_path_to(Board* board, int array[33][12], const position* find)
+void set_reachable(int array[33][23], const position& pos)
 {
+  array[pos.i][pos.j] = array[pos.i][pos.j] | (1 << pos.rotation);
+}
 
+void flood_fill(Board* board, int array[33][23], MoveType move_history[33][23][4])
+{
+  memset(array, 0, sizeof(array));
+  memset(move_history, 0, sizeof(move_history));
+
+  position current;
+  current.i = I_START;
+  current.j = J_START;
+  current.rotation = 0;
+
+  queue<position> q;
+  q.push(current);
+
+  do
+  {
+    current = q.front();
+    if(!is_reachable(array, current) && board->check(*board->block))
+    {
+      //std:cout << current.i << " " << current.j << " " << current.rotation << " " << array[current.i][current.j] << endl;
+      set_reachable(array, current);
+      MoveType hist;
+
+      if(current.j != 0)
+      {
+        position newp = current;
+        newp.j--;
+        if(!is_reachable(array, newp))
+        {
+          hist = mleft;
+          move_history[newp.i][newp.j][newp.rotation] = hist;
+          q.push(newp);
+        }
+      }
+      if(current.j != 22)
+      {
+        position newp = current;
+        newp.j++;
+        if(!is_reachable(array, newp))
+        {
+          hist = mright;
+          move_history[newp.i][newp.j][newp.rotation] = hist;
+          q.push(newp);
+        }
+      }
+      if(current.i != 0)
+      {
+        position newp = current;
+        newp.i--;
+        if(!is_reachable(array, newp))
+        {
+          hist = mup;
+          move_history[newp.i][newp.j][newp.rotation] = hist;
+          q.push(newp);
+        }
+      }
+      if(current.i != 32)
+      {
+        position newp = current;
+        newp.i++;
+        if(!is_reachable(array, newp))
+        {
+          hist = mdown;
+          move_history[newp.i][newp.j][newp.rotation] = hist;
+          q.push(newp);
+        }
+      }
+
+      position newp = current;
+      newp.rotation = (newp.rotation+1)%4;
+      if(!is_reachable(array, newp))
+      {
+        hist = mrotate;
+        move_history[newp.i][newp.j][newp.rotation] = hist;
+        q.push(newp);
+      }
+    }
+    q.pop();
+  } while(!q.empty());
+}
+
+//START = (9,11)
+
+vector<string>* find_path_to(Board* board, MoveType move_history[33][23][4], const position& find)
+{
+  stack<MoveType> moves;
+  vector<string>* move_strings = new vector<string>();
+
+  position current = find;
+  while(!equals_start(current))
+  {
+    moves.push(move_history[current.i][current.j][current.rotation]);
+    std::cout << current.i << " " << current.j << " " << current.rotation << endl;
+    switch(move_history[current.i][current.j][current.rotation])
+    {
+      case mleft:
+        current.j++;
+        break;
+      case mright:
+        current.j--;
+        break;
+      case mup:
+        current.i++;
+        break;
+      case mdown:
+        current.i--;
+        break;
+      case mrotate:
+        current.rotation = (current.rotation+3)%4;
+        break;
+      default:
+        cout << "Something went wrong" << endl;
+        assert(false);
+    }
+  }
+
+  while(!moves.empty())
+  {
+    MoveType last_move = moves.top();
+    switch(last_move)
+    {
+      case mleft:
+        move_strings->push_back("left");
+        break;
+      case mright:
+        move_strings->push_back("right");
+        break;
+      case mup:
+        move_strings->push_back("up");
+        break;
+      case mdown:
+        move_strings->push_back("down");
+        break;
+      case mrotate:
+        move_strings->push_back("rotate");
+        break;
+    }
+    moves.pop();
+  }
+
+  return move_strings;
 }
 
 int main(int argc, char** argv) {
@@ -309,7 +499,19 @@ int main(int argc, char** argv) {
 
   // Construct a board from this Object.
   Board board(state);
-
+  /*
+  MoveType move_history[33][23][4];
+  int array[33][23];
+  flood_fill(&board, array, move_history);
+  position test;
+  test.i = 12; test.j = 13; test.rotation = 2;
+  std::vector<string>* moves_s = find_path_to(&board, move_history, test);
+  for(int i = 0; i < moves_s->size(); i++)
+  {
+    cout << "move " << moves_s->at(i) << endl;
+  }
+  return 0;
+  */
   // Make some moves!
   vector<string> moves;
   while (board.check(*board.block)) {

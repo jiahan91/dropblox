@@ -3,6 +3,8 @@
 
 #include <sstream>
 #include <vector>
+#include <queue>
+#include <stack>
 
 using namespace json;
 using namespace std;
@@ -10,6 +12,8 @@ using namespace std;
 #define ROWS 33
 #define COLS 12
 #define PREVIEW_SIZE 5
+#define I_START 9
+#define J_START 11
 
 typedef int Bitmap[ROWS][COLS];
 
@@ -20,6 +24,16 @@ class Point {
   int i;
   int j;
 };
+
+
+enum MoveType {m_error, mleft, mright, mup, mdown, mrotate};
+typedef struct
+{
+  int i;
+  int j;
+  int rotation;
+} position;
+
 
 class Block {
  public:
@@ -51,6 +65,13 @@ class Block {
   bool checked_up(const Board& board);
   bool checked_down(const Board& board);
   bool checked_rotate(const Board& board);
+  
+  bool check_left(const Board& board);
+  bool check_right(const Board& board);
+  bool check_up(const Board& board);
+  bool check_down(const Board& board);
+  bool check_rotate(const Board& board);
+  void set_position(const position& pos);
 
   // Performs a command or a list of commands to move a block. A command is one of
   // "left", "right", "up", "down", "rotate".
@@ -59,7 +80,7 @@ class Block {
 
   void reset_position();
 
- private:
+ //private:
   // This isn't a standard function, just used to reverse rotation when it fails.
   void unrotate();
 };
