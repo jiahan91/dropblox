@@ -365,9 +365,9 @@ void flood_fill(Board* board, int array[33][23], MoveType move_history[33][23][4
   do
   {
     current = q.front();
+    board->block->set_position(current);
     if(!is_reachable(array, current) && board->check(*board->block))
     {
-      //std:cout << current.i << " " << current.j << " " << current.rotation << " " << array[current.i][current.j] << endl;
       set_reachable(array, current);
       MoveType hist;
 
@@ -427,6 +427,7 @@ void flood_fill(Board* board, int array[33][23], MoveType move_history[33][23][4
     }
     q.pop();
   } while(!q.empty());
+  board->block->reset_position();
 }
 
 //START = (9,11)
@@ -504,8 +505,9 @@ int main(int argc, char** argv) {
   int array[33][23];
   flood_fill(&board, array, move_history);
   position test;
-  test.i = 12; test.j = 13; test.rotation = 2;
+  test.i = 12; test.j = 22; test.rotation = 2;
   std::vector<string>* moves_s = find_path_to(&board, move_history, test);
+  
   for(int i = 0; i < moves_s->size(); i++)
   {
     cout << "move " << moves_s->at(i) << endl;
